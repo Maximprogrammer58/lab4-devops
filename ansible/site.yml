@@ -9,23 +9,23 @@
           - apache2
           - curl
         state: present
-
+    
     - name: Создаем каталог для веб-сервиса
       file:
         path: /opt/lab4-service/html
         state: directory
-
+    
     - name: Копируем файл index.html
       copy:
-        content: "Student Name"
+        content: "Shamenkov Maxim"
         dest: /opt/lab4-service/html/index.html
-
+    
     - name: Копируем файл service.sh
       copy:
         src: files/service.sh
         dest: /opt/lab4-service/service.sh
         mode: '0755'
-
+    
     - name: Создаем unit-файл для systemd
       copy:
         dest: /etc/systemd/system/lab4-service.service
@@ -38,17 +38,19 @@
 
           [Install]
           WantedBy=multi-user.target
-
+    
     - name: Перезагружаем daemon systemd
       systemd:
         daemon_reload: yes
-
+      changed_when: false 
+    
     - name: Запускаем сервис
       systemd:
         name: lab4-service
         state: started
         enabled: yes
-
+      changed_when: false
+    
     - name: Проверка доступности сервиса
       uri:
         url: http://127.0.0.1:8000/
