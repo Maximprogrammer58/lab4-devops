@@ -1,0 +1,55 @@
+---
+- name: Развертывание веб-сервиса
+  hosts: lab4
+  become: yes
+  tasks:
+    - name: Устанавливаем Apache2 и curl
+      apt:
+        name:
+          - apache2
+          - curl
+        state: present
+
+    - name: Создаем каталог для веб-сервиса
+      file:
+        path: /opt/lab4-service/html
+        state: directory
+
+    - name: Копируем файл index.html
+      copy:
+        content: "Student Name"
+        dest: /opt/lab4-service/html/index.html
+
+    - name: Копируем файл service.sh
+      copy:
+        src: files/service.sh
+        dest: /opt/lab4-service/service.sh
+        mode: '0755'
+
+    - name: Создаем unit-файл для systemd
+      copy:
+        dest: /etc/systemd/system/lab4-service.service
+        content: |
+          [Unit]
+          Description=Lab4 Web Service
+
+          [Service]
+          ExecStart=/opt/lab4-service/service.sh
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Перезагружаем daemon systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Запускаем сервис
+      systemd:
+        name: lab4-service
+        state: started
+        enabled: yes
+
+    - name: Проверка доступности сервиса
+      uri:
+        url: http://127.0.0.1:8000/
+        status_code: 200
